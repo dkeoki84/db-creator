@@ -1,0 +1,28 @@
+insert:
+- filename: out/test.sql
+  row_per_insert: 10
+  row_total: 47
+  schema:
+  - key: id
+    start: 10000
+    type: primary
+  - key: const_int
+    type: int
+    value: 777
+  - key: range_int
+    range:
+    - 1
+    - 7
+    type: int
+  - key: const_float
+    type: float
+    value: 99.99
+  - key: range_float
+    range:
+    - 1
+    - 7
+    type: float
+  - key: text
+    length: sentence
+    type: text
+  table_name: test_table
