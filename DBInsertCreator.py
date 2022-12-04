@@ -1,6 +1,7 @@
 from pathlib import Path
 import random
 import lorem
+import names
 
 
 class DBInsertGeneratorKeys:
@@ -20,6 +21,7 @@ class DBInsertGeneratorKeys:
     KEY_RANGE = "range"
     KEY_VALUE = "value"
     KEY_START = "start"
+    KEY_STR_TYPE = "str_type"
     KEY_LENGTH = "length"
     KEY_NULL = "allow_null"
 
@@ -27,7 +29,13 @@ class DBInsertGeneratorKeys:
     KEY_TYPE_PRIMARY = "primary"
     KEY_TYPE_INT = "int"
     KEY_TYPE_FLOAT = "float"
+    KEY_TYPE_STR = "str"
     KEY_TYPE_TEXT = "text"
+
+    # str type
+    KEY_STR_TYPE_FIRSTNAME = "firstname"
+    KEY_STR_TYPE_LASTNAME = "lastname"
+    KEY_STR_TYPE_FULLNAME = "fullname"
 
     # text length
     KEY_LENGTH_SENTENCE = "sentence"
@@ -102,6 +110,17 @@ class DBInsertGenerator:
 
         return f"{float(current_idx)}"
 
+    def process_str(self, current_idx: int, obj: dict):
+        NAMES_TABLE = {
+            DBInsertGeneratorKeys.KEY_STR_TYPE_FIRSTNAME: names.get_first_name,
+            DBInsertGeneratorKeys.KEY_STR_TYPE_LASTNAME: names.get_last_name,
+            DBInsertGeneratorKeys.KEY_STR_TYPE_FULLNAME: names.get_full_name,
+        }
+        if DBInsertGeneratorKeys.KEY_STR_TYPE in obj:
+            str_type = obj[DBInsertGeneratorKeys.KEY_STR_TYPE]
+            return f"\"{NAMES_TABLE[str_type]()}\""
+        return f"\"{NAMES_TABLE[DBInsertGeneratorKeys.KEY_STR_TYPE_FULLNAME]()}\""
+
     def process_text(self, current_idx: int, obj: dict):
         LOREM_TABLE = {
             DBInsertGeneratorKeys.KEY_LENGTH_PARAGRAPH: lorem.paragraph,
@@ -119,6 +138,7 @@ class DBInsertGenerator:
             DBInsertGeneratorKeys.KEY_TYPE_PRIMARY: self.process_primary,
             DBInsertGeneratorKeys.KEY_TYPE_INT: self.process_int,
             DBInsertGeneratorKeys.KEY_TYPE_FLOAT: self.process_float,
+            DBInsertGeneratorKeys.KEY_TYPE_STR: self.process_str,
             DBInsertGeneratorKeys.KEY_TYPE_TEXT: self.process_text,
         }
 
@@ -215,6 +235,21 @@ if __name__ == "__main__":
                             PARAM.KEY_NAME: "range_float",
                             PARAM.KEY_RANGE: [1,7],
                             PARAM.KEY_NULL: True
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
+                            PARAM.KEY_NAME: "firstname",
+                            PARAM.KEY_STR_TYPE: PARAM.KEY_STR_TYPE_FIRSTNAME,
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
+                            PARAM.KEY_NAME: "lastname",
+                            PARAM.KEY_STR_TYPE: PARAM.KEY_STR_TYPE_LASTNAME,
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
+                            PARAM.KEY_NAME: "fullname",
+                            PARAM.KEY_STR_TYPE: PARAM.KEY_STR_TYPE_FULLNAME,
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_TEXT,

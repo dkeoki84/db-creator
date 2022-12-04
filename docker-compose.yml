@@ -6,4 +6,5 @@ services:
       - .:/usr/src/app
     stdin_open: true
     tty: true
-    command: tail -F /dev/null
+    entrypoint: tail -f /dev/null
+
