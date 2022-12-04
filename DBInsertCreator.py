@@ -21,7 +21,7 @@ class DBInsertGeneratorKeys:
     KEY_VALUE = "value"
     KEY_START = "start"
     KEY_LENGTH = "length"
-    KEY_NULL = "null"
+    KEY_NULL = "allow_null"
 
     # types
     KEY_TYPE_PRIMARY = "primary"
@@ -65,7 +65,20 @@ class DBInsertGenerator:
             return f"{int(obj[DBInsertGeneratorKeys.KEY_VALUE])}"
         if DBInsertGeneratorKeys.KEY_RANGE in obj:
             range_list = obj[DBInsertGeneratorKeys.KEY_RANGE]
-            return f"{random.randint(int(range_list[0]),int(range_list[1]))}"
+            min_num = min(range_list)
+            max_num = max(range_list) + 1
+            null_offset = 0
+            if (
+                DBInsertGeneratorKeys.KEY_NULL in obj and
+                obj[DBInsertGeneratorKeys.KEY_NULL] == True
+            ):
+                null_offset = 1
+            ret = random.uniform(min_num,max_num+null_offset)
+
+            if null_offset:
+                return f"{int(ret)}" if ret < max_num else "NULL"
+            return f"{int(ret)}"
+
         return f"{current_idx}"
 
     def process_float(self, current_idx: int, obj: dict):
@@ -73,7 +86,20 @@ class DBInsertGenerator:
             return f"{float(obj[DBInsertGeneratorKeys.KEY_VALUE])}"
         if DBInsertGeneratorKeys.KEY_RANGE in obj:
             range_list = obj[DBInsertGeneratorKeys.KEY_RANGE]
-            return f"{random.uniform(range_list[0],range_list[1])}"
+            min_num = min(range_list)
+            max_num = max(range_list)
+            null_offset = 0
+            if (
+                DBInsertGeneratorKeys.KEY_NULL in obj and
+                obj[DBInsertGeneratorKeys.KEY_NULL] == True
+            ):
+                null_offset = 1
+            ret = random.uniform(min_num,max_num+null_offset)
+
+            if null_offset:
+                return f"{ret}" if ret < max_num else "NULL"
+            return f"{ret}"
+
         return f"{float(current_idx)}"
 
     def process_text(self, current_idx: int, obj: dict):
@@ -154,7 +180,7 @@ if __name__ == "__main__":
             PARAM.KEY_INSERT_DATA: [
                 {
                     PARAM.KEY_INSERT_NUM: 10,
-                    PARAM.KEY_INSERT_TOTAL: 50,
+                    PARAM.KEY_INSERT_TOTAL: 100,
                     PARAM.KEY_FILENAME: "out/test.sql",
                     PARAM.KEY_TABLE_NAME: "test_table",
                     PARAM.KEY_SCHEMA: [
@@ -165,13 +191,19 @@ if __name__ == "__main__":
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_INT,
+                            PARAM.KEY_NAME: "int_as_bool",
+                            PARAM.KEY_RANGE: [0,1]
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_INT,
                             PARAM.KEY_NAME: "const_int",
                             PARAM.KEY_VALUE: 777,
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_INT,
                             PARAM.KEY_NAME: "range_int",
-                            PARAM.KEY_RANGE: [1,7]
+                            PARAM.KEY_RANGE: [1,7],
+                            PARAM.KEY_NULL: True
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_FLOAT,
@@ -181,22 +213,13 @@ if __name__ == "__main__":
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_FLOAT,
                             PARAM.KEY_NAME: "range_float",
-                            PARAM.KEY_RANGE: [1,7]
+                            PARAM.KEY_RANGE: [1,7],
+                            PARAM.KEY_NULL: True
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_TEXT,
                             PARAM.KEY_NAME: "sentence",
                             PARAM.KEY_LENGTH: PARAM.KEY_LENGTH_SENTENCE,
-                        },
-                        {
-                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_TEXT,
-                            PARAM.KEY_NAME: "paragraph",
-                            PARAM.KEY_LENGTH: PARAM.KEY_LENGTH_PARAGRAPH,
-                        },
-                        {
-                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_TEXT,
-                            PARAM.KEY_NAME: "text",
-                            PARAM.KEY_LENGTH: PARAM.KEY_LENGTH_TEXT,
                         },
                     ],
                 }

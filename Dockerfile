@@ -8,4 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python", "./DBInsertCreator.py" ]
+ENTRYPOINT [ "python" , "./DBInsertCreator.py" ]
+
+CMD [ "-h" ]
