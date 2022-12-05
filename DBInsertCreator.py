@@ -36,6 +36,7 @@ class DBInsertGeneratorKeys:
     KEY_STR_TYPE_FIRSTNAME = "firstname"
     KEY_STR_TYPE_LASTNAME = "lastname"
     KEY_STR_TYPE_FULLNAME = "fullname"
+    KEY_STR_TYPE_STR = "str"
 
     # text length
     KEY_LENGTH_SENTENCE = "sentence"
@@ -118,7 +119,13 @@ class DBInsertGenerator:
         }
         if DBInsertGeneratorKeys.KEY_STR_TYPE in obj:
             str_type = obj[DBInsertGeneratorKeys.KEY_STR_TYPE]
-            return f"\"{NAMES_TABLE[str_type]()}\""
+
+            if str_type != DBInsertGeneratorKeys.KEY_STR_TYPE_STR:
+                return f"\"{NAMES_TABLE[str_type]()}\""
+            else:
+                str_val = obj[DBInsertGeneratorKeys.KEY_VALUE]
+                return f"\"{str_val}\"".replace('{idx}', str(current_idx))
+
         return f"\"{NAMES_TABLE[DBInsertGeneratorKeys.KEY_STR_TYPE_FULLNAME]()}\""
 
     def process_text(self, current_idx: int, obj: dict):
@@ -235,6 +242,12 @@ if __name__ == "__main__":
                             PARAM.KEY_NAME: "range_float",
                             PARAM.KEY_RANGE: [1,7],
                             PARAM.KEY_NULL: True
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
+                            PARAM.KEY_NAME: "email",
+                            PARAM.KEY_STR_TYPE: PARAM.KEY_STR_TYPE_STR,
+                            PARAM.KEY_VALUE: "seller{idx}@test.com"
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
