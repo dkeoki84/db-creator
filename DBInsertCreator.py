@@ -91,7 +91,7 @@ class DBInsertGenerator:
                 obj[DBInsertGeneratorKeys.KEY_NULL] == True
             ):
                 null_offset = 1
-            ret = random.uniform(min_num,max_num+null_offset)
+            ret = int(random.uniform(min_num,max_num+null_offset))
 
             if null_offset and ret >= max_num:
                 ret = DBInsertGeneratorKeys.KEY_NULL_STR
