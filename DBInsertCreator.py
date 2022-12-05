@@ -96,7 +96,7 @@ class DBInsertGenerator:
             if null_offset and ret >= max_num:
                 ret = DBInsertGeneratorKeys.KEY_NULL_STR
 
-        return f"{val}".replace(DBInsertGeneratorKeys.KEY_REPLACE_VAL, ret)
+        return f"{val}".replace(DBInsertGeneratorKeys.KEY_REPLACE_VAL, str(ret))
 
     def process_float(self, current_idx: int, obj: dict):
         if DBInsertGeneratorKeys.KEY_VALUE in obj:
