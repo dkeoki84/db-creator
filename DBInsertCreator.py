@@ -43,6 +43,12 @@ class DBInsertGeneratorKeys:
     KEY_LENGTH_PARAGRAPH = "paragraph"
     KEY_LENGTH_TEXT = "text"
 
+    # registered str
+    KEY_NULL_STR = "NULL"
+    KEY_REPLACE_IDX = "{idx}"
+    KEY_REPLACE_VAL = "{val}"
+
+
 class DBInsertGenerator:
 
     SQL_INSERT_TEXT = "INSERT INTO"
@@ -70,8 +76,11 @@ class DBInsertGenerator:
         return f"{idx}"
 
     def process_int(self, current_idx: int, obj: dict):
+        val = DBInsertGeneratorKeys.KEY_REPLACE_VAL
         if DBInsertGeneratorKeys.KEY_VALUE in obj:
-            return f"{int(obj[DBInsertGeneratorKeys.KEY_VALUE])}"
+            val = obj[DBInsertGeneratorKeys.KEY_VALUE]
+
+        ret = DBInsertGeneratorKeys.KEY_NULL_STR
         if DBInsertGeneratorKeys.KEY_RANGE in obj:
             range_list = obj[DBInsertGeneratorKeys.KEY_RANGE]
             min_num = min(range_list)
@@ -84,11 +93,10 @@ class DBInsertGenerator:
                 null_offset = 1
             ret = random.uniform(min_num,max_num+null_offset)
 
-            if null_offset:
-                return f"{int(ret)}" if ret < max_num else "NULL"
-            return f"{int(ret)}"
+            if null_offset and ret >= max_num:
+                ret = DBInsertGeneratorKeys.KEY_NULL_STR
 
-        return f"{current_idx}"
+        return f"{val}".replace(DBInsertGeneratorKeys.KEY_REPLACE_VAL, ret)
 
     def process_float(self, current_idx: int, obj: dict):
         if DBInsertGeneratorKeys.KEY_VALUE in obj:
@@ -106,7 +114,7 @@ class DBInsertGenerator:
             ret = random.uniform(min_num,max_num+null_offset)
 
             if null_offset:
-                return f"{ret}" if ret < max_num else "NULL"
+                return f"{ret}" if ret < max_num else DBInsertGeneratorKeys.KEY_NULL_STR
             return f"{ret}"
 
         return f"{float(current_idx)}"
@@ -124,7 +132,7 @@ class DBInsertGenerator:
                 return f"\"{NAMES_TABLE[str_type]()}\""
             else:
                 str_val = obj[DBInsertGeneratorKeys.KEY_VALUE]
-                return f"\"{str_val}\"".replace('{idx}', str(current_idx))
+                return f"\"{str_val}\"".replace(DBInsertGeneratorKeys.KEY_REPLACE_IDX, str(current_idx))
 
         return f"\"{NAMES_TABLE[DBInsertGeneratorKeys.KEY_STR_TYPE_FULLNAME]()}\""
 
@@ -231,6 +239,12 @@ if __name__ == "__main__":
                             PARAM.KEY_NAME: "range_int",
                             PARAM.KEY_RANGE: [1,7],
                             PARAM.KEY_NULL: True
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_INT,
+                            PARAM.KEY_NAME: "custom_range_int",
+                            PARAM.KEY_RANGE: [1,7],
+                            PARAM.KEY_VALUE: "image_{val}.png",
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_FLOAT,
