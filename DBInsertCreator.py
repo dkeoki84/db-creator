@@ -46,7 +46,7 @@ class DBInsertGeneratorKeys:
     # registered str
     KEY_NULL_STR = "NULL"
     KEY_REPLACE_IDX = "{idx}"
-    KEY_REPLACE_VAL = "{val}"
+    KEY_REPLACE_RANGE = "{range}"
 
 
 class DBInsertGenerator:
@@ -76,11 +76,10 @@ class DBInsertGenerator:
         return f"{idx}"
 
     def process_int(self, current_idx: int, obj: dict):
-        val = DBInsertGeneratorKeys.KEY_REPLACE_VAL
+        val = DBInsertGeneratorKeys.KEY_NULL_STR
         if DBInsertGeneratorKeys.KEY_VALUE in obj:
             val = obj[DBInsertGeneratorKeys.KEY_VALUE]
 
-        ret = DBInsertGeneratorKeys.KEY_NULL_STR
         if DBInsertGeneratorKeys.KEY_RANGE in obj:
             range_list = obj[DBInsertGeneratorKeys.KEY_RANGE]
             min_num = min(range_list)
@@ -94,9 +93,12 @@ class DBInsertGenerator:
             ret = int(random.uniform(min_num,max_num+null_offset))
 
             if null_offset and ret >= max_num:
-                ret = DBInsertGeneratorKeys.KEY_NULL_STR
+                return DBInsertGeneratorKeys.KEY_NULL_STR
 
-        return f"{val}".replace(DBInsertGeneratorKeys.KEY_REPLACE_VAL, str(ret))
+            if val == DBInsertGeneratorKeys.KEY_NULL_STR:
+                return f"{ret}"
+        
+        return f"{val}"
 
     def process_float(self, current_idx: int, obj: dict):
         if DBInsertGeneratorKeys.KEY_VALUE in obj:
@@ -127,14 +129,23 @@ class DBInsertGenerator:
         }
         if DBInsertGeneratorKeys.KEY_STR_TYPE in obj:
             str_type = obj[DBInsertGeneratorKeys.KEY_STR_TYPE]
-
-            if str_type != DBInsertGeneratorKeys.KEY_STR_TYPE_STR:
-                return f"\"{NAMES_TABLE[str_type]()}\""
-            else:
+            return f"\"{NAMES_TABLE[str_type]()}\""
+        else:
+            if DBInsertGeneratorKeys.KEY_VALUE in obj:
                 str_val = obj[DBInsertGeneratorKeys.KEY_VALUE]
-                return f"\"{str_val}\"".replace(DBInsertGeneratorKeys.KEY_REPLACE_IDX, str(current_idx))
 
-        return f"\"{NAMES_TABLE[DBInsertGeneratorKeys.KEY_STR_TYPE_FULLNAME]()}\""
+                ret = 0
+                if DBInsertGeneratorKeys.KEY_RANGE in obj:
+                    range_list = obj[DBInsertGeneratorKeys.KEY_RANGE]
+                    min_num = min(range_list)
+                    max_num = max(range_list) + 1
+                    ret = int(random.uniform(min_num,max_num))
+
+                return f"\"{str_val}\""\
+                    .replace(DBInsertGeneratorKeys.KEY_REPLACE_IDX, str(current_idx))\
+                    .replace(DBInsertGeneratorKeys.KEY_REPLACE_RANGE, str(ret))
+            else:
+                return DBInsertGeneratorKeys.KEY_NULL_STR
 
     def process_text(self, current_idx: int, obj: dict):
         LOREM_TABLE = {
@@ -241,12 +252,6 @@ if __name__ == "__main__":
                             PARAM.KEY_NULL: True
                         },
                         {
-                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_INT,
-                            PARAM.KEY_NAME: "custom_range_int",
-                            PARAM.KEY_RANGE: [1,7],
-                            PARAM.KEY_VALUE: "image_{val}.png",
-                        },
-                        {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_FLOAT,
                             PARAM.KEY_NAME: "const_float",
                             PARAM.KEY_VALUE: 99.99,
@@ -260,8 +265,13 @@ if __name__ == "__main__":
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
                             PARAM.KEY_NAME: "email",
-                            PARAM.KEY_STR_TYPE: PARAM.KEY_STR_TYPE_STR,
                             PARAM.KEY_VALUE: "seller{idx}@test.com"
+                        },
+                        {
+                            PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
+                            PARAM.KEY_NAME: "image",
+                            PARAM.KEY_RANGE: [1,10],
+                            PARAM.KEY_VALUE: "image_{range}.jpg"
                         },
                         {
                             PARAM.KEY_TYPE: PARAM.KEY_TYPE_STR,
